@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 AI Brain — Agente Operativo</title>
+    <meta name="description" content="AI Brain - Agente operativo autónomo con interfaz web, voz y ejecución de acciones.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div id="app" class="app-container">
+        <!-- Setup Modal -->
+        <div id="setup-modal" class="modal" style="display: none;">
+            <div class="modal-content glass-card">
+                <div class="modal-icon">🔑</div>
+                <h2>Configurar API Key</h2>
+                <p>Ingresa tu Gemini API Key para activar el cerebro</p>
+                <input type="password" id="api-key-input" placeholder="AIza..." class="input-field" autocomplete="off">
+                <button id="save-key-btn" class="btn btn-primary" onclick="saveApiKey()">
+                    <span class="btn-text">Activar Cerebro</span>
+                    <span class="btn-loader" style="display:none;">⏳</span>
+                </button>
+                <p class="hint">Obtén tu key en <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a></p>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="header glass-card">
+            <div class="header-left">
+                <div class="brain-icon" id="brain-icon">
+                    <span class="brain-emoji">🧠</span>
+                    <div class="brain-pulse"></div>
+                </div>
+                <div class="header-info">
+                    <h1>AI Brain</h1>
+                    <span class="status" id="status-text">Desconectado</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="stats-mini" id="stats-mini">
+                    <span class="stat-badge" id="stat-actions" title="Acciones ejecutadas">⚡ 0</span>
+                    <span class="stat-badge" id="stat-success" title="Tasa de éxito">✅ 100%</span>
+                </div>
+                <button class="btn btn-icon" id="voice-select-btn" onclick="toggleVoicePanel()" title="Configurar voz">
+                    🎙️
+                </button>
+                <button class="btn btn-icon" onclick="resetAgent()" title="Reiniciar agente">
+                    🔄
+                </button>
+                <button class="btn btn-icon" id="settings-btn" onclick="showSetup()" title="Configuración">
+                    ⚙️
+                </button>
+            </div>
+        </header>
+
+        <!-- Voice Config Panel -->
+        <div id="voice-panel" class="voice-panel glass-card" style="display: none;">
+            <h3>🎤 Configuración de Voz</h3>
+            <div class="voice-config-row">
+                <label>Voz del asistente:</label>
+                <select id="tts-voice-select" class="input-field">
+                    <option value="es-MX-DaliaNeural">🇲🇽 Dalia (Femenina MX)</option>
+                    <option value="es-MX-JorgeNeural">🇲🇽 Jorge (Masculino MX)</option>
+                    <option value="es-ES-ElviraNeural">🇪🇸 Elvira (Femenina ES)</option>
+                    <option value="es-ES-AlvaroNeural">🇪🇸 Álvaro (Masculino ES)</option>
+                    <option value="es-AR-ElenaNeural">🇦🇷 Elena (Femenina AR)</option>
+                    <option value="es-CO-SalomeNeural">🇨🇴 Salomé (Femenina CO)</option>
+                </select>
+            </div>
+            <div class="voice-config-row">
+                <label>Responder con voz:</label>
+                <label class="toggle">
+                    <input type="checkbox" id="auto-speak" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <button class="btn btn-sm" onclick="testVoice()">🔊 Probar voz</button>
+        </div>
+
+        <!-- Chat Area -->
+        <main class="chat-area" id="chat-area">
+            <div class="welcome-message" id="welcome">
+                <div class="welcome-icon">🧠</div>
+                <h2>AI Brain — Agente Operativo</h2>
+                <p>No es un chatbot. Es un operador autónomo.</p>
+                <div class="welcome-actions">
+                    <button class="chip" onclick="sendQuick('dime la info del sistema')">💻 Info del sistema</button>
+                    <button class="chip" onclick="sendQuick('lista los archivos del workspace')">📁 Ver archivos</button>
+                    <button class="chip" onclick="sendQuick('crea un script Python que diga hola mundo y ejecútalo')">🐍 Hola mundo</button>
+                    <button class="chip" onclick="sendQuick('dame el clima actual de google.com')">🌐 Scrape web</button>
+                </div>
+            </div>
+            <!-- Messages will be inserted here -->
+        </main>
+
+        <!-- Input Area -->
+        <footer class="input-area glass-card">
+            <div class="input-row">
+                <button class="btn btn-mic" id="mic-btn" onclick="toggleVoice()" title="Hablar (mantener presionado)">
+                    <span class="mic-icon">🎤</span>
+                    <div class="mic-ripple" style="display:none;"></div>
+                </button>
+                <div class="input-wrapper">
+                    <textarea id="message-input" placeholder="Escribe una instrucción o presiona 🎤 para hablar..." rows="1" autofocus></textarea>
+                </div>
+                <button class="btn btn-send" id="send-btn" onclick="sendMessage()" title="Enviar">
+                    <span class="send-icon">▶</span>
+                </button>
+            </div>
+            <div class="input-hints">
+                <span id="voice-status" class="voice-hint" style="display:none;">🔴 Escuchando...</span>
+                <span class="shortcut-hint">Enter para enviar · Shift+Enter nueva línea</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
